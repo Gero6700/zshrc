@@ -68,14 +68,15 @@ else
 fi
 
 
-#copiar config de github
+#copiar config de github desde un directorio temporal
 echo -e "Copy Github Configuration\n"
 
 sudo apt install -y unzip
-git clone https://github.com/Gero6700/zshrc
+git clone https://github.com/Gero6700/zshrc /tmp/zsh_temp
+cd /tmp/zsh_temp
 cp .zshrc ~/
-unzip powerlevel10k.zip ~/
-unzip zsh-syntax-highlighting.zip ~/
+unzip powerlevel10k.zip -d /home/gero/
+unzip zsh-syntax-highlighting.zip -d /home/gero/
 
 
 # source ~/.zshrc
