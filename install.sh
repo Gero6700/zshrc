@@ -83,6 +83,10 @@ cp .zshrc ~/
 unzip powerlevel10k.zip -d ${USER}
 unzip zsh-syntax-highlighting.zip -d ${USER}
 
+#Instalar bat
+wget https://github.com/sharkdp/bat/releases/download/v0.15.4/bat-musl_0.15.4_amd64.deb /tmp/zsh_temp
+cd /tmp/zsh_temp
+sudo dpkg -i bat-musl_0.15.4_amd64.deb
 
 # Poner de predeterminada zshrc
 echo -e "\nSudo access is needed to change default shell\n"
