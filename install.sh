@@ -73,6 +73,7 @@ echo -e "Copy Github Configuration\n"
 
 sudo apt install -y unzip
 git clone https://github.com/Gero6700/zshrc
+cp .zshrc ~/
 unzip powerlevel10k.zip ~/
 unzip zsh-syntax-highlighting.zip ~/
 
