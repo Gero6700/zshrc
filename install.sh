@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #Home directory del usuario
-USER=/home/gero
+USER=/home/gero/
 
+#Instalar zsh
 sudo apt install -y zsh
 
 #Install oh-my-zsh
-
 sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Oh-my-zsh plugins
@@ -39,18 +39,23 @@ else
     git clone --depth=1 https://github.com/zsh-users/zsh-history-substring-search ~/.config/gero/oh-my-zsh/custom/plugins/zsh-history-substring-search
 fi
 
-# INSTALL FONTS
+# Instalacion de fuentes
 sudo apt-get install -y fontconfig
 
 echo -e "Installing Nerd Fonts version of Hack, Roboto Mono, DejaVu Sans Mono\n"
+
+#HackHack Regular
 wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Regular%20Nerd%20Font%20Complete.ttf -P ~/.fonts/
+
+#RobotoMono
 wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Regular/complete/Roboto%20Mono%20Nerd%20Font%20Complete.ttf -P ~/.fonts/
+
+#DejaVuSansMono
 wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete.ttf -P ~/.fonts/
 
 fc-cache -fv ~/.fonts
 
-
-#p10k
+#Instalacion P10K
 echo -e "Installing P10K\n"
 
 if [ -d ~/.config/gero/oh-my-zsh/custom/themes/powerlevel10k ]; then
@@ -59,27 +64,27 @@ else
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.config/gero/oh-my-zsh/custom/themes/powerlevel10k
 fi
 
+#Instalar fzf
 if [ -d ~/.~/.config/gero/fzf ]; then
     cd ~/.config/gero/fzf && git pull
     ~/.config/gero/fzf/install --all --key-bindings --completion --no-update-rc
 else
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.config/gero/fzf
-    ~/.config/gero/fzf/install --all --key-bindings --completion --no-update-rc
+   sudo apt install -y fzf
 fi
 
 
-#copiar config de github desde un directorio temporal
+#Copiar configuracion custom de github
 echo -e "Copy Github Configuration\n"
 
 sudo apt install -y unzip
 git clone https://github.com/Gero6700/zshrc /tmp/zsh_temp
 cd /tmp/zsh_temp
 cp .zshrc ~/
-unzip powerlevel10k.zip -d /home/gero/
-unzip zsh-syntax-highlighting.zip -d /home/gero/
+unzip powerlevel10k.zip -d ${USER}
+unzip zsh-syntax-highlighting.zip -d ${USER}
 
 
-# source ~/.zshrc
+# Poner de predeterminada zshrc
 echo -e "\nSudo access is needed to change default shell\n"
 
 if chsh -s $(which zsh) && /bin/zsh -i -c 'omz update'; then
