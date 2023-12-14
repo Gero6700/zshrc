@@ -80,7 +80,6 @@ sudo apt install -y unzip
 git clone https://github.com/Gero6700/zshrc /tmp/zsh_temp
 cd /tmp/zsh_temp
 cp .zshrc ~/
-unzip powerlevel10k.zip -d ${USER}
 unzip zsh-syntax-highlighting.zip -d ${USER}
 
 #Instalar bat
