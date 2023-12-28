@@ -26,6 +26,7 @@ plugins=(
   aliases
   fzf
   zsh-autosuggestions
+  zsh-syntax-highlighting
   ansible
   colorize
   colored-man-pages
