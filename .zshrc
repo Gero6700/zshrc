@@ -1,5 +1,8 @@
 #Directorio home del usuario
-USER=/home/gero/
+USER_DIR=/home/gd2k
+
+#Usuario
+USER=gd2k
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -13,6 +16,9 @@ export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+
+#Tema de p10k
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
 plugins=(
   git
@@ -36,7 +42,7 @@ SAVEHIST=1000
 HISTFILE=$HOME/.zsh_history
 
 # User configuration
-export HOME="${USER}"
+export HOME="${USER_DIR}"
 export FZF_BASE="$HOME/.fzf"  # Configura la variable FZF_BASE
 
 #Alias
@@ -44,5 +50,5 @@ alias catt='bat'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-source ${USER}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ${USER_DIR}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/powerlevel10k/powerlevel10k.zsh-theme

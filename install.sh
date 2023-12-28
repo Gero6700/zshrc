@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #Home directory del usuario
-USER=/home/gero/
+USER_DIR=/home/gd2k
+USER=gd2k
 
 #Instalar zsh
 sudo apt install -y zsh
@@ -12,31 +13,31 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 # Oh-my-zsh plugins
 
 #zsh-autosuggestions
-if [ -d ~/.config/gero/oh-my-zsh/plugins/zsh-autosuggestions ]; then
-    cd ~/.config/gero/oh-my-zsh/plugins/zsh-autosuggestions && git pull
+if [ -d ~/.config/${USER}/oh-my-zsh/plugins/zsh-autosuggestions ]; then
+    cd ~/.config/${USER}/oh-my-zsh/plugins/zsh-autosuggestions && git pull
 else
         git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 fi
 
 #zsh-syntax-highlighting
-if [ -d ~/.config/gero/oh-my-zsh/custom/plugins/zsh-syntax-highlighting ]; then
-    cd ~/.config/gero/oh-my-zsh/custom/plugins/zsh-syntax-highlighting && git pull
+if [ -d ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-syntax-highlighting ]; then
+    cd ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-syntax-highlighting && git pull
 else
-    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.config/gero/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
 fi
 
 #zsh-completions
-if [ -d ~/.config/gero/oh-my-zsh/custom/plugins/zsh-completions ]; then
-    cd ~/.config/gero/oh-my-zsh/custom/plugins/zsh-completions && git pull
+if [ -d ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-completions ]; then
+    cd ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-completions && git pull
 else
-    git clone --depth=1 https://github.com/zsh-users/zsh-completions ~/.config/gero/oh-my-zsh/custom/plugins/zsh-completions
+    git clone --depth=1 https://github.com/zsh-users/zsh-completions ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-completions
 fi
 
 #zsh-history-substring-search
-if [ -d ~/.config/gero/oh-my-zsh/custom/plugins/zsh-history-substring-search ]; then
-    cd ~/.config/gero/oh-my-zsh/custom/plugins/zsh-history-substring-search && git pull
+if [ -d ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-history-substring-search ]; then
+    cd ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-history-substring-search && git pull
 else
-    git clone --depth=1 https://github.com/zsh-users/zsh-history-substring-search ~/.config/gero/oh-my-zsh/custom/plugins/zsh-history-substring-search
+    git clone --depth=1 https://github.com/zsh-users/zsh-history-substring-search ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-history-substring-search
 fi
 
 # Instalacion de fuentes
@@ -58,16 +59,13 @@ fc-cache -fv ~/.fonts
 #Instalacion P10K
 echo -e "Installing P10K\n"
 
-if [ -d ~/.config/gero/oh-my-zsh/custom/themes/powerlevel10k ]; then
-    cd ~/.config/gero/oh-my-zsh/custom/themes/powerlevel10k && git pull
-else
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.config/gero/oh-my-zsh/custom/themes/powerlevel10k
-fi
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 
 #Instalar fzf
-if [ -d ~/.~/.config/gero/fzf ]; then
-    cd ~/.config/gero/fzf && git pull
-    ~/.config/gero/fzf/install --all --key-bindings --completion --no-update-rc
+if [ -d ~/.~/.config/${USER}/fzf ]; then
+    cd ~/.config/${USER}/fzf && git pull
+    ~/.config/${USER}/fzf/install --all --key-bindings --completion --no-update-rc
 else
    sudo apt install -y fzf
 fi
@@ -77,10 +75,9 @@ fi
 echo -e "Copy Github Configuration\n"
 
 sudo apt install -y unzip
-git clone https://github.com/Gero6700/zshrc /tmp/zsh_temp
+git clone https://github.com/gero6700/zshrc /tmp/zsh_temp
 cd /tmp/zsh_temp
 cp .zshrc ~/
-unzip zsh-syntax-highlighting.zip -d ${USER}
 
 #Instalar bat
 wget https://github.com/sharkdp/bat/releases/download/v0.15.4/bat-musl_0.15.4_amd64.deb /tmp/zsh_temp
