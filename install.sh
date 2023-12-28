@@ -58,6 +58,8 @@ echo -e "Installing P10K\n"
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
 echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
 #Instalar fzf
 if [ -d ~/.~/.config/${USER}/fzf ]; then
     cd ~/.config/${USER}/fzf && git pull
@@ -65,7 +67,6 @@ if [ -d ~/.~/.config/${USER}/fzf ]; then
 else
    sudo apt install -y fzf
 fi
-
 
 #Copiar configuracion custom de github
 echo -e "Copy Github Configuration\n"
