@@ -50,5 +50,4 @@ alias catt='bat'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-source ${USER_DIR}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/powerlevel10k/powerlevel10k.zsh-theme

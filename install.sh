@@ -16,11 +16,7 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 
 #zsh-syntax-highlighting
-if [ -d ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-syntax-highlighting ]; then
-    cd ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-syntax-highlighting && git pull
-else
-    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-fi
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 
 #zsh-completions
 if [ -d ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-completions ]; then
