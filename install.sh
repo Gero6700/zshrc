@@ -8,7 +8,8 @@ USER=gdonaire
 sudo apt install -y zsh
 
 #Install oh-my-zsh
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+sh install.sh
 
 # Oh-my-zsh plugins
 
