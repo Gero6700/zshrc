@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #Home directory del usuario
-USER_DIR=/home/gd2k
-USER=gd2k
+USER_DIR=/home/gdonaire
+USER=gdonaire
 
 #Instalar zsh
 sudo apt install -y zsh
