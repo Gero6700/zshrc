@@ -1,6 +1,6 @@
 # Zshrc Custom
 
-Esta es la configuración que uso yo para la terminal **zhsrc**. Para automatizarlo hay que tener instalado *git* y *curl* y hacer lo siguiente:
+Esta es la configuración que uso yo para la terminal **zhsrc**. Para automatizarlo hay que tener instalado *git*, *curl*, *wget* y hacer lo siguiente:
 
 ``` bash
 git clone https://github.com/Gero6700/zshrc
