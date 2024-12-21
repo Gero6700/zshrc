@@ -50,5 +50,3 @@ export FZF_BASE="$HOME/.fzf"  # Configura la variable FZF_BASE
 alias catt='bat'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-source ~/powerlevel10k/powerlevel10k.zsh-theme
