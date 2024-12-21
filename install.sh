@@ -68,8 +68,9 @@ for i in "${!PLUGINS[@]}"; do
 done
 
 # Instalar Powerlevel10k
+log "Instalando Powerlevel10k..."
 if [ ! -d "$P10K_DIR" ]; then
-  log "Instalando Powerlevel10k..."
+  # Descargar Powerlevel10k
   git clone --quiet https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" || {
     error_log "Fallo al instalar Powerlevel10k."
     exit 1
@@ -78,11 +79,18 @@ else
   log "Powerlevel10k ya está instalado correctamente."
 fi
 
+# Asegurarse de que Powerlevel10k se ha configurado correctamente en .zshrc
+if ! grep -q "powerlevel10k/powerlevel10k" "$USER_DIR/.zshrc"; then
+  log "Configurando Powerlevel10k en .zshrc..."
+  echo "ZSH_THEME=\"powerlevel10k/powerlevel10k\"" >> "$USER_DIR/.zshrc"
+else
+  log "Powerlevel10k ya está configurado en .zshrc."
+fi
+
 # Configurar ~/.zshrc
 log "Actualizando configuraciones en .zshrc..."
 {
   echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh"
-  echo "source $P10K_DIR/powerlevel10k.zsh-theme"
 } >>"$USER_DIR/.zshrc"
 
 # Instalar Nerd Fonts si faltan
