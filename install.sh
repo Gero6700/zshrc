@@ -1,89 +1,129 @@
 #!/bin/bash
 
-#Home directory del usuario
-USER_DIR=/home/gdonaire
-USER=gdonaire
+USER_DIR="/home/gdonaire"
+USER="gdonaire"
+FONT_DIR="$USER_DIR/.fonts"
+ZSH_CUSTOM="$USER_DIR/.oh-my-zsh/custom"
+P10K_DIR="$ZSH_CUSTOM/themes/powerlevel10k"
 
-#Instalar zsh
-sudo apt install -y zsh
+FONTS=(
+  "Hack.zip"
+  "Roboto Mono Nerd Font Complete.ttf"
+  "DejaVu Sans Mono Nerd Font Complete.ttf"
+)
 
-#Install oh-my-zsh
-wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-sh install.sh
+log() {
+  echo -e "[INFO] $1"
+}
 
-# Oh-my-zsh plugins
+error_log() {
+  echo -e "[ERROR] $1" >&2
+}
 
-#zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-
-#zsh-syntax-highlighting
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-
-#zsh-completions
-if [ -d ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-completions ]; then
-    cd ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-completions && git pull
-else
-    git clone --depth=1 https://github.com/zsh-users/zsh-completions ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-completions
+# Verificar permisos
+if [ "$EUID" -ne 0 ]; then
+  error_log "Por favor, ejecuta este script como root (sudo)."
+  exit 1
 fi
 
-#zsh-history-substring-search
-if [ -d ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-history-substring-search ]; then
-    cd ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-history-substring-search && git pull
+# Instalar Zsh si falta
+if ! command -v zsh &>/dev/null; then
+  log "Instalando Zsh..."
+  apt update -qq && apt install -y zsh &>/dev/null || {
+    error_log "Fallo al instalar Zsh."
+    exit 1
+  }
 else
-    git clone --depth=1 https://github.com/zsh-users/zsh-history-substring-search ~/.config/${USER}/oh-my-zsh/custom/plugins/zsh-history-substring-search
+  log "Zsh ya está instalado."
 fi
 
-# Instalacion de fuentes
-sudo apt-get install -y fontconfig
-
-echo -e "Installing Nerd Fonts version of Hack, Roboto Mono, DejaVu Sans Mono\n"
-
-#HackHack Regular
-wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/complete/Hack%20Regular%20Nerd%20Font%20Complete.ttf -P ~/.fonts/
-
-#RobotoMono
-wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Regular/complete/Roboto%20Mono%20Nerd%20Font%20Complete.ttf -P ~/.fonts/
-
-#DejaVuSansMono
-wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete.ttf -P ~/.fonts/
-
-fc-cache -fv ~/.fonts
-
-#Instalacion P10K
-echo -e "Installing P10K\n"
-
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
-echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
-
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-
-#Instalar fzf
-if [ -d ~/.~/.config/${USER}/fzf ]; then
-    cd ~/.config/${USER}/fzf && git pull
-    ~/.config/${USER}/fzf/install --all --key-bindings --completion --no-update-rc
+# Instalar o reinstalar Oh-My-Zsh
+if [ ! -f "$USER_DIR/.oh-my-zsh/oh-my-zsh.sh" ]; then
+  log "Instalando Oh-My-Zsh..."
+  rm -rf "$USER_DIR/.oh-my-zsh" &>/dev/null
+  RUNZSH=no CHSH=no sh -c "$(wget -q -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" &>/dev/null || {
+    error_log "Fallo al instalar Oh-My-Zsh."
+    exit 1
+  }
 else
-   sudo apt install -y fzf
+  log "Oh-My-Zsh ya está instalado correctamente."
 fi
 
-#Copiar configuracion custom de github
-echo -e "Copy Github Configuration\n"
+# Instalar plugins
+PLUGINS=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search)
+REPOS=(
+  "https://github.com/zsh-users/zsh-autosuggestions"
+  "https://github.com/zsh-users/zsh-syntax-highlighting"
+  "https://github.com/zsh-users/zsh-completions"
+  "https://github.com/zsh-users/zsh-history-substring-search"
+)
 
-sudo apt install -y unzip
-git clone https://github.com/gero6700/zshrc /tmp/zsh_temp
-cd /tmp/zsh_temp
-cp .zshrc ~/
+for i in "${!PLUGINS[@]}"; do
+  if [ ! -d "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" ]; then
+    log "Instalando plugin ${PLUGINS[i]}..."
+    git clone --quiet "${REPOS[i]}" "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" || {
+      error_log "Fallo al instalar el plugin ${PLUGINS[i]}."
+    }
+  fi
+done
 
-#Instalar bat
-wget https://github.com/sharkdp/bat/releases/download/v0.15.4/bat-musl_0.15.4_amd64.deb /tmp/zsh_temp
-cd /tmp/zsh_temp
-sudo dpkg -i bat-musl_0.15.4_amd64.deb
-
-# Poner de predeterminada zshrc
-echo -e "\nSudo access is needed to change default shell\n"
-
-if chsh -s $(which zsh) && /bin/zsh -i -c 'omz update'; then
-    echo -e "Installation Successful, exit terminal and enter a new session"
+# Instalar Powerlevel10k
+if [ ! -d "$P10K_DIR" ]; then
+  log "Instalando Powerlevel10k..."
+  git clone --quiet https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" || {
+    error_log "Fallo al instalar Powerlevel10k."
+    exit 1
+  }
 else
-    echo -e "Something is wrong"
+  log "Powerlevel10k ya está instalado correctamente."
 fi
-exit
+
+# Configurar ~/.zshrc
+log "Actualizando configuraciones en .zshrc..."
+{
+  echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh"
+  echo "source $P10K_DIR/powerlevel10k.zsh-theme"
+} >>"$USER_DIR/.zshrc"
+
+# Instalar Nerd Fonts si faltan
+log "Instalando Nerd Fonts si faltan..."
+mkdir -p "$FONT_DIR" &>/dev/null
+for FONT in "${FONTS[@]}"; do
+  FONT_PATH="$FONT_DIR/$FONT"
+  if [ ! -f "$FONT_PATH" ]; then
+    log "Descargando fuente $FONT..."
+    if [ "$FONT" == "Hack.zip" ]; then
+      wget -q -O "$FONT_DIR/Hack.zip" "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip" || {
+        error_log "Fallo al descargar la fuente Hack Regular Nerd Font Complete.ttf."
+        continue
+      }
+      unzip -o "$FONT_DIR/Hack.zip" -d "$FONT_DIR/" &>/dev/null || {
+        error_log "Fallo al descomprimir Hack.zip."
+        continue
+      }
+      rm "$FONT_DIR/Hack.zip" || {
+        error_log "Fallo al eliminar el archivo Hack.zip."
+        continue
+      }
+    else
+      wget -q "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/${FONT// /%20}/Regular/complete/$FONT" -P "$FONT_DIR/" || {
+        error_log "Fallo al descargar la fuente $FONT."
+        continue
+      }
+    fi
+  fi
+done
+
+# Regenerar caché de fuentes
+log "Regenerando caché de fuentes..."
+fc-cache -fv &>/dev/null || error_log "Fallo al regenerar la caché de fuentes."
+
+# Cambiar shell a Zsh
+if [ "$SHELL" != "$(which zsh)" ]; then
+  log "Cambiando el shell predeterminado a Zsh..."
+  chsh -s "$(which zsh)" "$USER" &>/dev/null || error_log "Fallo al cambiar el shell predeterminado."
+else
+  log "El shell predeterminado ya es Zsh."
+fi
+
+log "Instalación completada. Reinicia la terminal para aplicar los cambios."
