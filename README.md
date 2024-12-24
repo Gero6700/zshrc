@@ -5,6 +5,7 @@ Esta es la configuración que uso yo para la terminal **zhsrc**. Para automatiza
 ``` bash
 git clone https://github.com/Gero6700/zshrc
 cd zshrc
+sudo chmod +x install.sh
 sudo ./install.sh
 ```
 
