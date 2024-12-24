@@ -118,7 +118,7 @@ log "Copiando archivo .zshrc preconfigurado..."
 if [ -f ".zshrc" ]; then
   # Copiar el archivo preconfigurado
   sudo -u "$USER" cp ".zshrc" "$USER_DIR/.zshrc"
-  
+
   # Añadir configuraciones necesarias si faltan
   if ! grep -q "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh" "$USER_DIR/.zshrc"; then
     echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh" >> "$USER_DIR/.zshrc"
