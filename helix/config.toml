@@ -1,0 +1,4 @@
+theme = "zed_onedark"
+
+[editor]
+true-color = true

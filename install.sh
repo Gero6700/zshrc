@@ -1,15 +1,15 @@
 #!/bin/bash
 
-USER_DIR="/home/gdonaire"
+# Configurar entorno para el usuario correcto
 USER="gdonaire"
+USER_DIR="/home/$USER"
 FONT_DIR="$USER_DIR/.fonts"
 ZSH_CUSTOM="$USER_DIR/.oh-my-zsh/custom"
 P10K_DIR="$ZSH_CUSTOM/themes/powerlevel10k"
+FZF_DIR="$USER_DIR/.fzf"
 
 FONTS=(
   "Hack.zip"
-  "Roboto Mono Nerd Font Complete.ttf"
-  "DejaVu Sans Mono Nerd Font Complete.ttf"
 )
 
 log() {
@@ -20,11 +20,15 @@ error_log() {
   echo -e "[ERROR] $1" >&2
 }
 
-# Verificar permisos
+# Comprobar si se ejecuta como root
 if [ "$EUID" -ne 0 ]; then
   error_log "Por favor, ejecuta este script como root (sudo)."
   exit 1
 fi
+
+# Configurar entorno para usuario final
+export HOME="$USER_DIR"
+export USER="$USER"
 
 # Instalar Zsh si falta
 if ! command -v zsh &>/dev/null; then
@@ -41,7 +45,7 @@ fi
 if [ ! -f "$USER_DIR/.oh-my-zsh/oh-my-zsh.sh" ]; then
   log "Instalando Oh-My-Zsh..."
   rm -rf "$USER_DIR/.oh-my-zsh" &>/dev/null
-  RUNZSH=no CHSH=no sh -c "$(wget -q -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" &>/dev/null || {
+  sudo -u "$USER" bash -c 'RUNZSH=no CHSH=no sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"' || {
     error_log "Fallo al instalar Oh-My-Zsh."
     exit 1
   }
@@ -50,7 +54,7 @@ else
 fi
 
 # Instalar plugins
-PLUGINS=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search)
+PLUGINS=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search fzf)
 REPOS=(
   "https://github.com/zsh-users/zsh-autosuggestions"
   "https://github.com/zsh-users/zsh-syntax-highlighting"
@@ -59,18 +63,20 @@ REPOS=(
 )
 
 for i in "${!PLUGINS[@]}"; do
-  if [ ! -d "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" ]; then
-    log "Instalando plugin ${PLUGINS[i]}..."
-    git clone --quiet "${REPOS[i]}" "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" || {
-      error_log "Fallo al instalar el plugin ${PLUGINS[i]}."
-    }
+  if [ "${PLUGINS[i]}" != "fzf" ]; then
+    if [ ! -d "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" ]; then
+      log "Instalando plugin ${PLUGINS[i]}..."
+      sudo -u "$USER" git clone --quiet "${REPOS[i]}" "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" || {
+        error_log "Fallo al instalar el plugin ${PLUGINS[i]}."
+      }
+    fi
   fi
 done
 
 # Instalar Powerlevel10k
+log "Instalando Powerlevel10k..."
 if [ ! -d "$P10K_DIR" ]; then
-  log "Instalando Powerlevel10k..."
-  git clone --quiet https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" || {
+  sudo -u "$USER" git clone --quiet https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" || {
     error_log "Fallo al instalar Powerlevel10k."
     exit 1
   }
@@ -78,12 +84,56 @@ else
   log "Powerlevel10k ya está instalado correctamente."
 fi
 
+# Instalar fzf
+log "Instalando fzf..."
+if [ ! -d "$FZF_DIR" ]; then
+  sudo -u "$USER" git clone --quiet --depth 1 https://github.com/junegunn/fzf.git "$FZF_DIR" || {
+    error_log "Fallo al clonar el repositorio de fzf."
+    exit 1
+  }
+  sudo -u "$USER" bash -c "$FZF_DIR/install --all" &>/dev/null || {
+    error_log "Fallo al instalar fzf."
+    exit 1
+  }
+else
+  log "fzf ya está instalado."
+fi
+
+# Configurar FZF_BASE en .zshrc
+if ! grep -q "export FZF_BASE=" "$USER_DIR/.zshrc"; then
+  echo "export FZF_BASE=\"$FZF_DIR\"" >> "$USER_DIR/.zshrc"
+  log "FZF_BASE configurado en .zshrc."
+fi
+
+# Configurar Powerlevel10k en .zshrc
+if ! grep -q "powerlevel10k/powerlevel10k" "$USER_DIR/.zshrc"; then
+  log "Configurando Powerlevel10k en .zshrc..."
+  echo "ZSH_THEME=\"powerlevel10k/powerlevel10k\"" >> "$USER_DIR/.zshrc"
+else
+  log "Powerlevel10k ya está configurado en .zshrc."
+fi
+
 # Configurar ~/.zshrc
-log "Actualizando configuraciones en .zshrc..."
-{
-  echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh"
-  echo "source $P10K_DIR/powerlevel10k.zsh-theme"
-} >>"$USER_DIR/.zshrc"
+log "Copiando archivo .zshrc preconfigurado..."
+if [ -f ".zshrc" ]; then
+  # Copiar el archivo preconfigurado
+  sudo -u "$USER" cp ".zshrc" "$USER_DIR/.zshrc"
+  
+  # Añadir configuraciones necesarias si faltan
+  if ! grep -q "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh" "$USER_DIR/.zshrc"; then
+    echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh" >> "$USER_DIR/.zshrc"
+  fi
+  if ! grep -q "export FZF_BASE=" "$USER_DIR/.zshrc"; then
+    echo "export FZF_BASE=\"$FZF_DIR\"" >> "$USER_DIR/.zshrc"
+  fi
+else
+  error_log "No se encontró el archivo zshrc/.zshrc. Se usará una configuración básica."
+  {
+    echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh"
+    echo "export FZF_BASE=\"$FZF_DIR\""
+    echo "ZSH_THEME=\"powerlevel10k/powerlevel10k\""
+  } > "$USER_DIR/.zshrc"
+fi
 
 # Instalar Nerd Fonts si faltan
 log "Instalando Nerd Fonts si faltan..."
