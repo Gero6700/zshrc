@@ -24,7 +24,7 @@ sudo chmod +x install.sh
 
 # 4. Ejecuta el script de instalación
 sudo ./install.sh
-
+```
 ¡Y eso es todo! El script instalará todo lo que necesitas y configurará tu terminal y Helix con mis ajustes preferidos.
 
 ✨ ¿Qué hace este repositorio por ti?
