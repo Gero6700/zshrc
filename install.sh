@@ -20,6 +20,11 @@ error_log() {
   echo -e "[ERROR] $1" >&2
 }
 
+# Colores
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+RESET="\033[0m"
+
 # Comprobar si se ejecuta como root
 if [ "$EUID" -ne 0 ]; then
   error_log "Por favor, ejecuta este script como root (sudo)."
@@ -113,6 +118,26 @@ else
   log "Powerlevel10k ya está configurado en .zshrc."
 fi
 
+# Instalar bat y lsd
+log "Instalando bat y lsd..."
+if ! command -v bat &>/dev/null; then
+  apt install -y bat &>/dev/null || {
+    error_log "Fallo al instalar bat."
+    exit 1
+  }
+else
+  log "bat ya está instalado."
+fi
+
+if ! command -v lsd &>/dev/null; then
+  apt install -y lsd &>/dev/null || {
+    error_log "Fallo al instalar lsd."
+    exit 1
+  }
+else
+  log "lsd ya está instalado."
+fi
+
 # Configurar ~/.zshrc
 log "Copiando archivo .zshrc preconfigurado..."
 if [ -f ".zshrc" ]; then
@@ -127,7 +152,7 @@ if [ -f ".zshrc" ]; then
     echo "export FZF_BASE=\"$FZF_DIR\"" >> "$USER_DIR/.zshrc"
   fi
 else
-  error_log "No se encontró el archivo zshrc/.zshrc. Se usará una configuración básica."
+  error_log "No se encontró el archivo .zshrc. Se usará una configuración básica."
   {
     echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh"
     echo "export FZF_BASE=\"$FZF_DIR\""

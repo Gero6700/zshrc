@@ -17,6 +17,9 @@ export PATH=$HOME/bin:/usr/local/bin:$PATH
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
+#Para snap
+export PATH="$PATH:$HOME/.cargo/bin"
+
 #Tema de p10k
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
@@ -48,5 +51,11 @@ export FZF_BASE="$HOME/.fzf"  # Configura la variable FZF_BASE
 
 #Alias
 alias catt='bat'
+
+alias ls='lsd'
+alias l='ls -l'
+alias la='ls -a'
+alias lla='ls -la'
+alias lt='ls --tree'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
