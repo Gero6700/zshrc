@@ -20,11 +20,6 @@ error_log() {
   echo -e "[ERROR] $1" >&2
 }
 
-# Colores
-GREEN="\033[0;32m"
-YELLOW="\033[1;33m"
-RESET="\033[0m"
-
 # Comprobar si se ejecuta como root
 if [ "$EUID" -ne 0 ]; then
   error_log "Por favor, ejecuta este script como root (sudo)."
@@ -46,7 +41,7 @@ else
   log "Zsh ya está instalado."
 fi
 
-# Instalar o reinstalar Oh-My-Zsh
+# Instalar Oh-My-Zsh
 if [ ! -f "$USER_DIR/.oh-my-zsh/oh-my-zsh.sh" ]; then
   log "Instalando Oh-My-Zsh..."
   rm -rf "$USER_DIR/.oh-my-zsh" &>/dev/null
@@ -58,26 +53,6 @@ else
   log "Oh-My-Zsh ya está instalado correctamente."
 fi
 
-# Instalar plugins
-PLUGINS=(zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search fzf)
-REPOS=(
-  "https://github.com/zsh-users/zsh-autosuggestions"
-  "https://github.com/zsh-users/zsh-syntax-highlighting"
-  "https://github.com/zsh-users/zsh-completions"
-  "https://github.com/zsh-users/zsh-history-substring-search"
-)
-
-for i in "${!PLUGINS[@]}"; do
-  if [ "${PLUGINS[i]}" != "fzf" ]; then
-    if [ ! -d "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" ]; then
-      log "Instalando plugin ${PLUGINS[i]}..."
-      sudo -u "$USER" git clone --quiet "${REPOS[i]}" "$ZSH_CUSTOM/plugins/${PLUGINS[i]}" || {
-        error_log "Fallo al instalar el plugin ${PLUGINS[i]}."
-      }
-    fi
-  fi
-done
-
 # Instalar Powerlevel10k
 log "Instalando Powerlevel10k..."
 if [ ! -d "$P10K_DIR" ]; then
@@ -87,6 +62,36 @@ if [ ! -d "$P10K_DIR" ]; then
   }
 else
   log "Powerlevel10k ya está instalado correctamente."
+fi
+
+# Instalar bat
+log "Instalando bat..."
+if ! command -v bat &>/dev/null; then
+  wget -q https://github.com/sharkdp/bat/releases/download/v0.24.0/bat_0.24.0_amd64.deb -O /tmp/bat.deb || {
+    error_log "Fallo al descargar bat."
+    exit 1
+  }
+  dpkg -i /tmp/bat.deb &>/dev/null || {
+    apt-get install -f -y &>/dev/null
+    dpkg -i /tmp/bat.deb &>/dev/null || {
+      error_log "Fallo al instalar bat desde el archivo .deb."
+      exit 1
+    }
+  }
+  rm /tmp/bat.deb
+else
+  log "bat ya está instalado."
+fi
+
+# Instalar lsd
+log "Instalando lsd..."
+if ! command -v lsd &>/dev/null; then
+  apt install -y lsd &>/dev/null || {
+    error_log "Fallo al instalar lsd."
+    exit 1
+  }
+else
+  log "lsd ya está instalado."
 fi
 
 # Instalar fzf
@@ -104,96 +109,7 @@ else
   log "fzf ya está instalado."
 fi
 
-# Configurar FZF_BASE en .zshrc
-if ! grep -q "export FZF_BASE=" "$USER_DIR/.zshrc"; then
-  echo "export FZF_BASE=\"$FZF_DIR\"" >> "$USER_DIR/.zshrc"
-  log "FZF_BASE configurado en .zshrc."
-fi
-
-# Configurar Powerlevel10k en .zshrc
-if ! grep -q "powerlevel10k/powerlevel10k" "$USER_DIR/.zshrc"; then
-  log "Configurando Powerlevel10k en .zshrc..."
-  echo "ZSH_THEME=\"powerlevel10k/powerlevel10k\"" >> "$USER_DIR/.zshrc"
-else
-  log "Powerlevel10k ya está configurado en .zshrc."
-fi
-
-# Instalar bat y lsd
-log "Instalando bat y lsd..."
-if ! command -v bat &>/dev/null; then
-  apt install -y bat &>/dev/null || {
-    error_log "Fallo al instalar bat."
-    exit 1
-  }
-else
-  log "bat ya está instalado."
-fi
-
-if ! command -v lsd &>/dev/null; then
-  apt install -y lsd &>/dev/null || {
-    error_log "Fallo al instalar lsd."
-    exit 1
-  }
-else
-  log "lsd ya está instalado."
-fi
-
-# Configurar ~/.zshrc
-log "Copiando archivo .zshrc preconfigurado..."
-if [ -f ".zshrc" ]; then
-  # Copiar el archivo preconfigurado
-  sudo -u "$USER" cp ".zshrc" "$USER_DIR/.zshrc"
-
-  # Añadir configuraciones necesarias si faltan
-  if ! grep -q "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh" "$USER_DIR/.zshrc"; then
-    echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh" >> "$USER_DIR/.zshrc"
-  fi
-  if ! grep -q "export FZF_BASE=" "$USER_DIR/.zshrc"; then
-    echo "export FZF_BASE=\"$FZF_DIR\"" >> "$USER_DIR/.zshrc"
-  fi
-else
-  error_log "No se encontró el archivo .zshrc. Se usará una configuración básica."
-  {
-    echo "source $USER_DIR/.oh-my-zsh/oh-my-zsh.sh"
-    echo "export FZF_BASE=\"$FZF_DIR\""
-    echo "ZSH_THEME=\"powerlevel10k/powerlevel10k\""
-  } > "$USER_DIR/.zshrc"
-fi
-
-# Instalar Nerd Fonts si faltan
-log "Instalando Nerd Fonts si faltan..."
-mkdir -p "$FONT_DIR" &>/dev/null
-for FONT in "${FONTS[@]}"; do
-  FONT_PATH="$FONT_DIR/$FONT"
-  if [ ! -f "$FONT_PATH" ]; then
-    log "Descargando fuente $FONT..."
-    if [ "$FONT" == "Hack.zip" ]; then
-      wget -q -O "$FONT_DIR/Hack.zip" "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip" || {
-        error_log "Fallo al descargar la fuente Hack Regular Nerd Font Complete.ttf."
-        continue
-      }
-      unzip -o "$FONT_DIR/Hack.zip" -d "$FONT_DIR/" &>/dev/null || {
-        error_log "Fallo al descomprimir Hack.zip."
-        continue
-      }
-      rm "$FONT_DIR/Hack.zip" || {
-        error_log "Fallo al eliminar el archivo Hack.zip."
-        continue
-      }
-    else
-      wget -q "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/${FONT// /%20}/Regular/complete/$FONT" -P "$FONT_DIR/" || {
-        error_log "Fallo al descargar la fuente $FONT."
-        continue
-      }
-    fi
-  fi
-done
-
-# Regenerar caché de fuentes
-log "Regenerando caché de fuentes..."
-fc-cache -fv &>/dev/null || error_log "Fallo al regenerar la caché de fuentes."
-
-# Cambiar shell a Zsh
+# Configurar Zsh como shell predeterminado
 if [ "$SHELL" != "$(which zsh)" ]; then
   log "Cambiando el shell predeterminado a Zsh..."
   chsh -s "$(which zsh)" "$USER" &>/dev/null || error_log "Fallo al cambiar el shell predeterminado."
