@@ -6,6 +6,8 @@ USER_DIR="/home/$USER"
 CONFIG_DIR="$USER_DIR/.config/helix"
 THEME_REPO="https://github.com/Gero6700/zshrc.git"
 HELEX_REPO_DIR="$USER_DIR/zshrc/helix"
+HELIX_VERSION="25.1.1-1"
+HELIX_DEB_URL="https://github.com/helix-editor/helix/releases/download/25.01.1/helix_${HELIX_VERSION}_amd64.deb"
 
 log() {
   echo -e "[INFO] $1"
@@ -15,39 +17,38 @@ error_log() {
   echo -e "[ERROR] $1" >&2
 }
 
-# Comprobar permisos
+# Comprobar permisos de root
 if [ "$EUID" -ne 0 ]; then
   error_log "Por favor, ejecuta este script como root (sudo)."
   exit 1
 fi
 
-# Instalar Helix usando PPA
-log "Añadiendo el repositorio PPA para Helix..."
-if ! grep -q "^deb .*/maveonair/helix-editor" /etc/apt/sources.list.d/* &>/dev/null; then
-  add-apt-repository -y ppa:maveonair/helix-editor &>/dev/null || {
-    error_log "Fallo al añadir el repositorio PPA."
-    exit 1
-  }
-else
-  log "El repositorio PPA ya está configurado."
-fi
-
-log "Actualizando índices de paquetes..."
-apt update -qq || {
-  error_log "Fallo al actualizar los índices de paquetes."
+# Instalar dependencias necesarias
+log "Instalando dependencias necesarias..."
+apt update -qq
+apt install -y curl git || {
+  error_log "Fallo al instalar dependencias."
   exit 1
 }
 
+# Descargar el paquete de instalación de Helix
+log "Descargando Helix versión $HELIX_VERSION..."
+curl -L -o /tmp/helix.deb "$HELIX_DEB_URL" || {
+  error_log "Fallo al descargar Helix desde $HELIX_DEB_URL."
+  exit 1
+}
+
+# Instalar Helix
 log "Instalando Helix..."
-apt install -y helix || {
-  error_log "Fallo al instalar Helix."
-  exit 1
+dpkg -i /tmp/helix.deb || {
+  error_log "Fallo al instalar Helix. Intentando corregir dependencias..."
+  apt --fix-broken install -y
 }
 
-# Clonar tu repositorio si no existe
+# Clonar el repositorio de configuración si no existe
 if [ ! -d "$HELEX_REPO_DIR" ]; then
   log "Clonando el repositorio de configuración de Helix desde GitHub..."
-  git clone "$THEME_REPO" "$HELEX_REPO_DIR" || {
+  sudo -u "$USER" git clone "$THEME_REPO" "$HELEX_REPO_DIR" || {
     error_log "Fallo al clonar el repositorio de configuración de Helix."
     exit 1
   }
@@ -55,7 +56,10 @@ else
   log "El repositorio de configuración de Helix ya existe."
 fi
 
-# Copiar archivos de configuración y temas
+# Crear directorio de configuración si no existe
+mkdir -p "$CONFIG_DIR"
+
+# Copiar archivos de configuración
 log "Copiando archivos de configuración y temas de Helix..."
 cp -r "$HELEX_REPO_DIR/config" "$CONFIG_DIR" || {
   error_log "Fallo al copiar la configuración de Helix."
@@ -67,6 +71,9 @@ if [ ! -f "$CONFIG_DIR/config.toml" ]; then
   error_log "El archivo config.toml no se encuentra en el directorio de configuración."
   exit 1
 fi
+
+# Ajustar permisos para que el usuario pueda acceder a su configuración
+chown -R "$USER":"$USER" "$CONFIG_DIR"
 
 # Verificar la instalación de Helix
 log "Verificando la instalación de Helix..."
