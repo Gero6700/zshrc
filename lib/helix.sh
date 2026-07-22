@@ -15,7 +15,7 @@ install_helix() {
 
   log "Consultando la última versión de Helix en GitHub..."
   local tag
-  tag="$(latest_github_tag helix-editor/helix)"
+  tag="$(latest_github_tag helix-editor/helix)" || true
   if [ -z "$tag" ]; then
     warn "No se pudo consultar la última versión de Helix (¿sin acceso a GitHub?). Se omite la instalación de Helix."
     return 0
