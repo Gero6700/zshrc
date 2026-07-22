@@ -20,7 +20,8 @@ source "$REPO_DIR/lib/helix.sh"
 source "$REPO_DIR/lib/devops.sh"
 
 # Valores por defecto (ver .env.example); un .env en el repo los sobreescribe.
-INSTALL_PROFILE="full"
+# "base": sin stack de k8s/devops salvo que se pida explícitamente por .env.
+INSTALL_PROFILE="base"
 K8S_CHANNEL="1.31"
 TARGET_USER=""
 GIT_USER_NAME=""

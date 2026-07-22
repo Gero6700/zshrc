@@ -3,17 +3,19 @@
 Bootstrap para dejar una terminal lista para trabajar en cualquier servidor
 **Debian 12/13** o **Ubuntu Server** recién instalado: clonas el repo, ejecutas
 `install.sh` y te encuentras con el mismo entorno que uso a diario (zsh +
-Powerlevel10k, Helix, y las herramientas CLI/devops habituales).
+Powerlevel10k, Helix, y las herramientas CLI habituales).
 
-Incluye:
+Por defecto instala:
 
 - **Zsh + Oh My Zsh + Powerlevel10k**, con los plugins y el prompt que uso yo.
 - **Helix** como editor, con mi `config.toml`.
 - Herramientas CLI de siempre: `bat`, `lsd`, `ripgrep`, `fd`, `fzf`, `tmux`,
   `htop`/`btop`, `ncdu`, `tree`, `jq`, `mtr`, `direnv`.
-- Opcionalmente (perfil `full`, el de por defecto), un stack devops:
-  `kubectl`, `helm`, `k9s`, `terraform`, `ansible`, `go`, `gh` (GitHub CLI),
-  `yq` y `krew`.
+
+Y solo si lo pides explícitamente (perfil `full`, ver abajo), añade un stack
+devops: `kubectl`, `helm`, `k9s`, `terraform`, `ansible`, `go`, `gh` (GitHub
+CLI), `yq` y `krew`. La mayoría de mis servidores no tienen nada que ver con
+Kubernetes, así que esto no se instala salvo que lo actives a propósito.
 
 Todo se instala a la última versión disponible (repos oficiales de apt o
 última release de GitHub) en vez de con versiones fijas en el script, así que
@@ -29,9 +31,10 @@ cd zshrc
 sudo ./install.sh
 ```
 
-Por defecto instala todo (perfil `full`) para el usuario que ha invocado
-`sudo`. Si quieres ajustar algo, copia `.env.example` a `.env` antes de
-ejecutar el script:
+Por defecto instala el perfil `base` (shell + Helix, sin nada de devops/k8s)
+para el usuario que ha invocado `sudo`. Si quieres el stack devops en esta
+máquina en concreto, copia `.env.example` a `.env` y pon `INSTALL_PROFILE=full`
+antes de ejecutar el script:
 
 ```bash
 cp .env.example .env
@@ -44,7 +47,7 @@ Variables disponibles en `.env`:
 | Variable          | Por defecto        | Qué hace |
 |-------------------|---------------------|----------|
 | `TARGET_USER`     | usuario de `sudo`   | Usuario para el que se instalan los dotfiles. Solo hace falta si ejecutas el script como root sin `sudo`. |
-| `INSTALL_PROFILE` | `full`              | `full` instala también el stack devops; `base` se queda solo con shell + Helix, para servidores más ligeros. |
+| `INSTALL_PROFILE` | `base`              | `base` es solo shell + Helix, sin nada de k8s/devops; `full` añade encima kubectl/helm/k9s/terraform/ansible/go/gh/yq/krew. |
 | `K8S_CHANNEL`     | `1.31`              | Canal (minor) del repo oficial de paquetes de `kubectl`. |
 | `GIT_USER_NAME` / `GIT_USER_EMAIL` | vacío | Si los rellenas, se configuran como identidad global de git. Si los dejas en blanco, no se toca la configuración de git. |
 
