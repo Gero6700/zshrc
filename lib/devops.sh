@@ -33,7 +33,7 @@ install_k9s() {
     return
   fi
   local tag
-  tag="$(latest_github_tag derailed/k9s)"
+  tag="$(latest_github_tag derailed/k9s)" || true
   [ -n "$tag" ] || { warn "No se pudo consultar la última versión de k9s."; return; }
   local url="https://github.com/derailed/k9s/releases/download/${tag}/k9s_Linux_${ARCH}.tar.gz"
   local tmp
@@ -54,7 +54,7 @@ install_yq() {
     return
   fi
   local tag
-  tag="$(latest_github_tag mikefarah/yq)"
+  tag="$(latest_github_tag mikefarah/yq)" || true
   [ -n "$tag" ] || { warn "No se pudo consultar la última versión de yq."; return; }
   log "Instalando yq ${tag}..."
   curl -fsSL "https://github.com/mikefarah/yq/releases/download/${tag}/yq_linux_${ARCH}" -o /usr/local/bin/yq \
@@ -68,7 +68,10 @@ install_go() {
     return
   fi
   local version
-  version="$(curl -fsSL 'https://go.dev/VERSION?m=text' | head -1)"
+  # Igual que en latest_github_tag: se captura toda la respuesta antes de
+  # recortarla, para no cerrarle la tubería a curl a media escritura.
+  version="$(curl -fsSL 'https://go.dev/VERSION?m=text')" || true
+  version="${version%%$'\n'*}"
   [ -n "$version" ] || { warn "No se pudo determinar la última versión de Go."; return; }
   local url="https://go.dev/dl/${version}.linux-${ARCH}.tar.gz"
   local tmp

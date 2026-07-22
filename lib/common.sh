@@ -78,12 +78,15 @@ apt_update_once() {
   fi
 }
 
-# Descarga el binario de una release de GitHub (último tag por defecto) y lo deja en $2.
-# Uso: github_release_asset <owner/repo> <patrón-con-{version}-y-{arch}> <archivo-destino> [arch_amd64] [arch_arm64]
+# Devuelve el tag de la última release de un repo de GitHub (vacío si falla).
 latest_github_tag() {
-  local repo="$1"
-  curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" \
-    | grep -m1 '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/'
+  local repo="$1" response
+  # Se captura toda la respuesta antes de parsearla: un pipe con un lector que
+  # corta en cuanto encuentra la primera coincidencia (grep -m1, head...) le
+  # manda SIGPIPE a curl a medio escribir y, con set -e, aborta el script
+  # entero con "curl: (23) Failure writing output to destination".
+  response="$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest")" || return 1
+  [[ "$response" =~ \"tag_name\":\ *\"([^\"]+)\" ]] && echo "${BASH_REMATCH[1]}"
 }
 
 backup_if_exists() {
