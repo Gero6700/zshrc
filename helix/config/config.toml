@@ -1,4 +1,89 @@
-theme = "zed_onedark"
-
+theme = "dracula"
+ 
 [editor]
+
 true-color = true
+
+bufferline = "multiple"
+
+completion-replace = true
+
+completion-trigger-len = 1
+
+cursorline = true
+
+line-number = "relative"
+
+shell = ["zsh", "-c"]
+
+text-width = 120
+
+auto-format = true
+ 
+[editor.statusline]
+
+left = ["mode", "spinner"]
+
+center = ["file-name"]
+
+right = [
+
+  "diagnostics",
+
+  "selections",
+
+  "position",
+
+  "file-encoding",
+
+  "file-line-ending",
+
+  "file-type",
+
+]
+
+separator = "│"
+
+mode.normal = "NORMAL"
+
+mode.insert = "INSERT"
+
+mode.select = "SELECT"
+ 
+[editor.lsp]
+
+display-messages = true
+
+display-inlay-hints = true
+
+auto-signature-help = true
+
+display-signature-help-docs = true
+ 
+[editor.cursor-shape]
+
+insert = "bar"
+
+normal = "block"
+
+select = "underline"
+ 
+# [editor.file-picker]
+
+# hidden = false
+
+# git-ignore = false
+ 
+[editor.indent-guides]
+
+render = true
+
+character = "┆"
+
+skip-levels = 1
+ 
+[editor.soft-wrap]
+
+enable = true
+ 
+ 
