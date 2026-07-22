@@ -1,120 +1,67 @@
 #!/bin/bash
+# Bootstrap de terminal para Debian 12/13 y Ubuntu Server: zsh + oh-my-zsh +
+# Powerlevel10k, herramientas CLI, Helix y (opcional) stack devops.
+#
+# Uso:
+#   git clone https://github.com/Gero6700/zshrc && cd zshrc
+#   cp .env.example .env   # opcional, para ajustar el perfil/usuario
+#   sudo ./install.sh
+set -euo pipefail
 
-# Configurar entorno para el usuario correcto
-USER="gdonaire"
-USER_DIR="/home/$USER"
-FONT_DIR="$USER_DIR/.fonts"
-ZSH_CUSTOM="$USER_DIR/.oh-my-zsh/custom"
-P10K_DIR="$ZSH_CUSTOM/themes/powerlevel10k"
-FZF_DIR="$USER_DIR/.fzf"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-FONTS=(
-  "Hack.zip"
-)
+# shellcheck source=lib/common.sh
+source "$REPO_DIR/lib/common.sh"
+# shellcheck source=lib/shell.sh
+source "$REPO_DIR/lib/shell.sh"
+# shellcheck source=lib/helix.sh
+source "$REPO_DIR/lib/helix.sh"
+# shellcheck source=lib/devops.sh
+source "$REPO_DIR/lib/devops.sh"
 
-log() {
-  echo -e "[INFO] $1"
+# Valores por defecto (ver .env.example); un .env en el repo los sobreescribe.
+INSTALL_PROFILE="full"
+K8S_CHANNEL="1.31"
+TARGET_USER=""
+GIT_USER_NAME=""
+GIT_USER_EMAIL=""
+
+if [ -f "$REPO_DIR/.env" ]; then
+  log "Cargando configuración desde .env..."
+  # shellcheck disable=SC1091
+  source "$REPO_DIR/.env"
+fi
+
+configure_git_identity() {
+  [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ] || return 0
+  log "Configurando identidad de git para $TARGET_USER..."
+  run_as_user "git config --global user.name '$GIT_USER_NAME'"
+  run_as_user "git config --global user.email '$GIT_USER_EMAIL'"
+  run_as_user "git config --global init.defaultBranch main"
+  run_as_user "git config --global core.editor hx"
 }
 
-error_log() {
-  echo -e "[ERROR] $1" >&2
+main() {
+  require_root
+  detect_platform
+  resolve_target_user
+
+  log "Perfil de instalación: $INSTALL_PROFILE | Usuario destino: $TARGET_USER ($TARGET_HOME)"
+
+  install_shell_stack
+  install_helix_stack
+
+  case "$INSTALL_PROFILE" in
+    full) install_devops_stack ;;
+    base) log "Perfil 'base': se omite el stack devops (kubectl/helm/terraform/ansible/go/gh/yq/krew)." ;;
+    *) warn "INSTALL_PROFILE='$INSTALL_PROFILE' no reconocido; usa 'full' o 'base'. Se omite el stack devops." ;;
+  esac
+
+  configure_git_identity
+
+  ok "Instalación completada."
+  log "Cierra sesión y vuelve a entrar (o ejecuta 'zsh') para que $TARGET_USER use el nuevo shell."
+  log "Personalizaciones propias de esta máquina: edita $TARGET_HOME/.zshrc.local"
 }
 
-# Comprobar si se ejecuta como root
-if [ "$EUID" -ne 0 ]; then
-  error_log "Por favor, ejecuta este script como root (sudo)."
-  exit 1
-fi
-
-# Configurar entorno para usuario final
-export HOME="$USER_DIR"
-export USER="$USER"
-
-# Instalar Zsh si falta
-if ! command -v zsh &>/dev/null; then
-  log "Instalando Zsh..."
-  apt update -qq && apt install -y zsh &>/dev/null || {
-    error_log "Fallo al instalar Zsh."
-    exit 1
-  }
-else
-  log "Zsh ya está instalado."
-fi
-
-# Instalar Oh-My-Zsh
-if [ ! -f "$USER_DIR/.oh-my-zsh/oh-my-zsh.sh" ]; then
-  log "Instalando Oh-My-Zsh..."
-  rm -rf "$USER_DIR/.oh-my-zsh" &>/dev/null
-  sudo -u "$USER" bash -c 'RUNZSH=no CHSH=no sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"' || {
-    error_log "Fallo al instalar Oh-My-Zsh."
-    exit 1
-  }
-else
-  log "Oh-My-Zsh ya está instalado correctamente."
-fi
-
-# Instalar Powerlevel10k
-log "Instalando Powerlevel10k..."
-if [ ! -d "$P10K_DIR" ]; then
-  sudo -u "$USER" git clone --quiet https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" || {
-    error_log "Fallo al instalar Powerlevel10k."
-    exit 1
-  }
-else
-  log "Powerlevel10k ya está instalado correctamente."
-fi
-
-# Instalar bat
-log "Instalando bat..."
-if ! command -v bat &>/dev/null; then
-  wget -q https://github.com/sharkdp/bat/releases/download/v0.24.0/bat_0.24.0_amd64.deb -O /tmp/bat.deb || {
-    error_log "Fallo al descargar bat."
-    exit 1
-  }
-  dpkg -i /tmp/bat.deb &>/dev/null || {
-    apt-get install -f -y &>/dev/null
-    dpkg -i /tmp/bat.deb &>/dev/null || {
-      error_log "Fallo al instalar bat desde el archivo .deb."
-      exit 1
-    }
-  }
-  rm /tmp/bat.deb
-else
-  log "bat ya está instalado."
-fi
-
-# Instalar lsd
-log "Instalando lsd..."
-if ! command -v lsd &>/dev/null; then
-  apt install -y lsd &>/dev/null || {
-    error_log "Fallo al instalar lsd."
-    exit 1
-  }
-else
-  log "lsd ya está instalado."
-fi
-
-# Instalar fzf
-log "Instalando fzf..."
-if [ ! -d "$FZF_DIR" ]; then
-  sudo -u "$USER" git clone --quiet --depth 1 https://github.com/junegunn/fzf.git "$FZF_DIR" || {
-    error_log "Fallo al clonar el repositorio de fzf."
-    exit 1
-  }
-  sudo -u "$USER" bash -c "$FZF_DIR/install --all" &>/dev/null || {
-    error_log "Fallo al instalar fzf."
-    exit 1
-  }
-else
-  log "fzf ya está instalado."
-fi
-
-# Configurar Zsh como shell predeterminado
-if [ "$SHELL" != "$(which zsh)" ]; then
-  log "Cambiando el shell predeterminado a Zsh..."
-  chsh -s "$(which zsh)" "$USER" &>/dev/null || error_log "Fallo al cambiar el shell predeterminado."
-else
-  log "El shell predeterminado ya es Zsh."
-fi
-
-log "Instalación completada. Reinicia la terminal para aplicar los cambios."
+main "$@"

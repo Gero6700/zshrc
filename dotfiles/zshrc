@@ -1,0 +1,64 @@
+# ~/.zshrc — desplegado por install.sh desde este repo.
+# Cambios de esta máquina en concreto (claves ssh, kubeconfigs, mounts...) van
+# en ~/.zshrc.local, que este fichero carga al final y que install.sh nunca
+# sobrescribe.
+
+# Enable Powerlevel10k instant prompt.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Si vienes de bash puede que tengas que ajustar el PATH.
+export PATH="$HOME/bin:/usr/local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$PATH:$HOME/.cargo/bin"
+export PATH="$PATH:/snap/bin"
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+# Path a la instalación de oh-my-zsh.
+export ZSH="$HOME/.oh-my-zsh"
+
+export EDITOR=helix
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+export ANSIBLE_VAULT_PASSWORD_FILE="$HOME/.config/ansible/ansible_vault"
+
+# Tema de p10k
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+plugins=(
+  aliases
+  ansible
+  colored-man-pages
+  colorize
+  fzf
+  git
+  kubectl
+  sudo
+  terraform
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
+
+source $ZSH/oh-my-zsh.sh
+
+# Para personalizar el prompt, ejecuta 'p10k configure' o edita ~/.p10k.zsh.
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+
+# Historial
+HISTSIZE=1000
+SAVEHIST=1000
+HISTFILE=$HOME/.zsh_history
+
+export FZF_BASE="$HOME/.fzf"
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+[ -f ~/.config/zsh/aliases.zsh ] && source ~/.config/zsh/aliases.zsh
+
+# Google Cloud SDK, si está instalado (no lo instala este repo).
+[ -f "$HOME/google-cloud-sdk/path.zsh.inc" ] && source "$HOME/google-cloud-sdk/path.zsh.inc"
+[ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ] && source "$HOME/google-cloud-sdk/completion.zsh.inc"
+
+# Overrides propios de esta máquina (no versionados en el repo público).
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
